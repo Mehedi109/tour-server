@@ -25,14 +25,15 @@ async function run() {
     const database = client.db('tourism');
     const destinationCollection = database.collection('destinations');
     const ordersCollection = database.collection('orders');
-    // console.log(destinationCollection);
+
     // GET API
     app.get('/destinations', async (req, res) => {
       const cursor = destinationCollection.find({});
       const result = await cursor.toArray();
       res.send(result);
     });
-    // GET API for specific id
+
+    // GET API for specific id of destination
     app.get('/destinations/:id', async (req, res) => {
       const id = req.params.id;
       // console.log(id);
@@ -41,13 +42,15 @@ async function run() {
       console.log(result);
       res.send(result);
     });
-    // POST API
+
+    // POST API for orders
     app.post('/orders', async (req, res) => {
       const orders = req.body;
       const result = await ordersCollection.insertOne(orders);
       console.log('hit server', orders);
       res.json(result);
     });
+
     // POST API
     app.post('/addDestination', async (req, res) => {
       const destination = req.body;
@@ -55,11 +58,9 @@ async function run() {
       console.log('hit server', destination);
       res.json(result);
     });
+
     //  GET API for orders of logged in user
     app.get('/myOrders/:email', async (req, res) => {
-      // console.log(req.params.email);
-      // const cursor = ordersCollection.find({});
-      // const result = await cursor.toArray();
       const result = await ordersCollection
         .find({ email: req.params.email })
         .toArray();
@@ -81,7 +82,32 @@ async function run() {
       res.send(result);
     });
     // UPDATE API for orders
-    app.put('/orders/:id', async (req, res) => {});
+    app.put('/orders/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const updatedOrder = req.body;
+      console.log(updatedOrder);
+      const query = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: updatedOrder.name,
+          email: updatedOrder.email,
+          destination: updatedOrder.destination,
+          price: updatedOrder.price,
+          address: updatedOrder.address,
+          phone: updatedOrder.phone,
+          status: updatedOrder.status,
+        },
+      };
+      const result = await ordersCollection.updateOne(
+        query,
+        updateDoc,
+        options
+      );
+      console.log('updating');
+      res.send(result);
+    });
     // DELETE API for orders
     app.delete('/orders/:id', async (req, res) => {
       const id = req.params.id;
